@@ -30,7 +30,19 @@ class Barcode_Generator_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'barcodes';
+		$charset_collate = $wpdb->get_charset_collate();
 
+		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
+			`id` bigint(20) NOT NULL AUTO_INCREMENT,
+			`barcode` bigint(13) DEFAULT '0000000000000' NOT NULL,
+			`date_created` datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			PRIMARY KEY (`id`)
+		) $charset_collate;";
+
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
 	}
 
 }

@@ -83,21 +83,44 @@ class Barcode_Generator_Public {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Barcode_Generator_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Barcode_Generator_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/barcode-generator-public.js', array( 'jquery' ), $this->version, false );
-
 	}
 
+	/**
+	 * Hook into the Woocommerce order complete action
+	 *
+	 * @since    1.0.0
+	 */
+	public static function wc_hook($order_id) {
+		if ( ! $order_id )
+			return;
+
+		// Getting an instance of the order object
+		$order = wc_get_order( $order_id );
+
+		if($order->is_paid())
+			$paid = 'yes';
+		else
+			$paid = 'no';
+
+		// iterating through each order items (getting product ID and the product object) 
+		// (work for simple and variable products)
+		foreach ( $order->get_items() as $item_id => $item ) {
+
+			if( $item['variation_id'] > 0 ){
+				$product_id = $item['variation_id']; // variable product
+			} else {
+				$product_id = $item['product_id']; // simple product
+			}
+
+			// Get the product object
+			$product = wc_get_product( $product_id );
+
+		}
+
+		// Ouptput some data
+		echo '<p>Order ID: '. $order_id . ' — Order Status: ' . $order->get_status() . ' — Order is paid: ' . $paid . '</p>';
+
+		exit();
+	}
 }

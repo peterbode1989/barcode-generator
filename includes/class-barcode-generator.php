@@ -156,6 +156,10 @@ class Barcode_Generator {
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+		
+		// Create settings page
+		$this->loader->add_action( 'admin_init', $plugin_admin, 'settings_init' );
+		$this->loader->add_action( 'admin_menu', $plugin_admin, 'wporg_options_page' );
 
 	}
 
@@ -173,6 +177,8 @@ class Barcode_Generator {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
+		// Create the WC hook
+		$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'wc_hook', 10, 1);
 	}
 
 	/**
