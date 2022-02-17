@@ -54,7 +54,7 @@ class Barcode_Generator_Cronjob
 	public static function scheduleSendBarcodes($schedules)
 	{
 		$schedules['sendBarcodes'] = array(
-			'interval' => 15 * 60,
+			'interval' => 5 * 60,
 			'display'  => __('Every Fifteen Minutes'),
 		);
 		return $schedules;
