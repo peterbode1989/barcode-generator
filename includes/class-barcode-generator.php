@@ -27,7 +27,8 @@
  * @subpackage Barcode_Generator/includes
  * @author     Peter Bode <peterbode1989@gmail.com>
  */
-class Barcode_Generator {
+class Barcode_Generator
+{
 
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power
@@ -66,8 +67,9 @@ class Barcode_Generator {
 	 *
 	 * @since    1.0.0
 	 */
-	public function __construct() {
-		if ( defined( 'BARCODE_GENERATOR_VERSION' ) ) {
+	public function __construct()
+	{
+		if (defined('BARCODE_GENERATOR_VERSION')) {
 			$this->version = BARCODE_GENERATOR_VERSION;
 		} else {
 			$this->version = '1.0.0';
@@ -77,8 +79,8 @@ class Barcode_Generator {
 		$this->load_dependencies();
 		$this->set_locale();
 		$this->define_admin_hooks();
+		$this->define_cronjob_hooks();
 		$this->define_public_hooks();
-
 	}
 
 	/**
@@ -97,33 +99,38 @@ class Barcode_Generator {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-	private function load_dependencies() {
+	private function load_dependencies()
+	{
 
 		/**
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-barcode-generator-loader.php';
+		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-barcode-generator-loader.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-barcode-generator-i18n.php';
+		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-barcode-generator-i18n.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-barcode-generator-admin.php';
+		require_once plugin_dir_path(dirname(__FILE__)) . 'admin/class-barcode-generator-admin.php';
+
+		/**
+		 * The class responsible for defining all actions that occur relative to cronjobs.
+		 */
+		require_once plugin_dir_path(dirname(__FILE__)) . 'cronjob/class-barcode-generator-cronjob.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-barcode-generator-public.php';
+		require_once plugin_dir_path(dirname(__FILE__)) . 'public/class-barcode-generator-public.php';
 
 		$this->loader = new Barcode_Generator_Loader();
-
 	}
 
 	/**
@@ -135,12 +142,11 @@ class Barcode_Generator {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-	private function set_locale() {
-
+	private function set_locale()
+	{
 		$plugin_i18n = new Barcode_Generator_i18n();
 
-		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
-
+		$this->loader->add_action('plugins_loaded', $plugin_i18n, 'load_plugin_textdomain');
 	}
 
 	/**
@@ -150,17 +156,39 @@ class Barcode_Generator {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-	private function define_admin_hooks() {
+	private function define_admin_hooks()
+	{
+		$plugin_admin = new Barcode_Generator_Admin($this->get_plugin_name(), $this->get_version());
 
-		$plugin_admin = new Barcode_Generator_Admin( $this->get_plugin_name(), $this->get_version() );
-
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-		
 		// Create settings page
-		$this->loader->add_action( 'admin_init', $plugin_admin, 'settings_init' );
-		$this->loader->add_action( 'admin_menu', $plugin_admin, 'wporg_options_page' );
+		$this->loader->add_action('admin_init', $plugin_admin, 'settings_init');
+		$this->loader->add_action('admin_menu', $plugin_admin, 'wporg_options_page');
 
+		// Create the custom tab / product properties
+		$this->loader->add_filter('woocommerce_product_data_tabs', $plugin_admin, 'add_my_custom_product_data_tab', 99, 1);
+		$this->loader->add_action('woocommerce_product_data_panels', $plugin_admin, 'add_my_custom_product_data_fields');
+		$this->loader->add_action('woocommerce_process_product_meta', $plugin_admin, 'woocommerce_process_product_meta_fields_save');
+	}
+
+	/**
+	 * Register all of the hooks related to the cronjob functionality
+	 * of the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private function define_cronjob_hooks()
+	{
+		$plugin_cronjob = new Barcode_Generator_Cronjob($this->get_plugin_name(), $this->get_version());
+
+		// The global cronjob settings / schedule
+		$this->loader->add_filter('cron_schedules', $plugin_cronjob, 'scheduleSendBarcodes');
+
+		// The scheduled task hook
+		$this->loader->add_action('task_barcodes', $plugin_cronjob, 'sendBarcodes');
+
+
+		// $this->loader->add_action('init', $plugin_cronjob, 'createAttachment');
 	}
 
 	/**
@@ -170,15 +198,12 @@ class Barcode_Generator {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-	private function define_public_hooks() {
-
-		$plugin_public = new Barcode_Generator_Public( $this->get_plugin_name(), $this->get_version() );
-
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+	private function define_public_hooks()
+	{
+		$plugin_public = new Barcode_Generator_Public($this->get_plugin_name(), $this->get_version());
 
 		// Create the WC hook
-		$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'wc_hook', 10, 1);
+		$this->loader->add_action('woocommerce_thankyou', $plugin_public, 'wc_hook', 10, 1);
 	}
 
 	/**
@@ -186,7 +211,8 @@ class Barcode_Generator {
 	 *
 	 * @since    1.0.0
 	 */
-	public function run() {
+	public function run()
+	{
 		$this->loader->run();
 	}
 
@@ -197,7 +223,8 @@ class Barcode_Generator {
 	 * @since     1.0.0
 	 * @return    string    The name of the plugin.
 	 */
-	public function get_plugin_name() {
+	public function get_plugin_name()
+	{
 		return $this->plugin_name;
 	}
 
@@ -207,7 +234,8 @@ class Barcode_Generator {
 	 * @since     1.0.0
 	 * @return    Barcode_Generator_Loader    Orchestrates the hooks of the plugin.
 	 */
-	public function get_loader() {
+	public function get_loader()
+	{
 		return $this->loader;
 	}
 
@@ -217,8 +245,8 @@ class Barcode_Generator {
 	 * @since     1.0.0
 	 * @return    string    The version number of the plugin.
 	 */
-	public function get_version() {
+	public function get_version()
+	{
 		return $this->version;
 	}
-
 }

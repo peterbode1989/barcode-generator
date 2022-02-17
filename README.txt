@@ -39,6 +39,8 @@ you put the stable version, in order to eliminate any doubt.
 
 == Installation ==
 
+*/15 * * * * cd /var/www/example.com/htdocs; php /var/www/example.com/htdocs/wp-cron.php?doing_wp_cron > /dev/null 2>&1
+
 This section describes how to install the plugin and get it working.
 
 e.g.

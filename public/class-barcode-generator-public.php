@@ -13,8 +13,7 @@
 /**
  * The public-facing functionality of the plugin.
  *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the public-facing stylesheet and JavaScript.
+ * Defines the plugin name, version
  *
  * @package    Barcode_Generator
  * @subpackage Barcode_Generator/public
@@ -48,44 +47,10 @@ class Barcode_Generator_Public {
 	 * @param      string    $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
-
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-
 	}
-
-	/**
-	 * Register the stylesheets for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_styles() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Barcode_Generator_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Barcode_Generator_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/barcode-generator-public.css', array(), $this->version, 'all' );
-
-	}
-
-	/**
-	 * Register the JavaScript for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_scripts() {
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/barcode-generator-public.js', array( 'jquery' ), $this->version, false );
-	}
-
+	
 	/**
 	 * Hook into the Woocommerce order complete action
 	 *
@@ -98,29 +63,82 @@ class Barcode_Generator_Public {
 		// Getting an instance of the order object
 		$order = wc_get_order( $order_id );
 
-		if($order->is_paid())
-			$paid = 'yes';
-		else
-			$paid = 'no';
+		// if($order->is_paid())
+		// 	$paid = 'yes';
+		// else
+		// 	$paid = 'no';
 
 		// iterating through each order items (getting product ID and the product object) 
 		// (work for simple and variable products)
-		foreach ( $order->get_items() as $item_id => $item ) {
-
-			if( $item['variation_id'] > 0 ){
+		// $barcodes = [];
+		$status = false;
+		foreach ( $order->get_items() as $item_id => $item ) :
+			if( $item['variation_id'] > 0 ):
 				$product_id = $item['variation_id']; // variable product
-			} else {
+			else:
 				$product_id = $item['product_id']; // simple product
-			}
+			endif;
+			
+			$quantity = $item['quantity'];
+			if(!empty($quantity)):
+				$barcodeProduct = get_post_meta( $product_id, '_barcode_enabled', true );
+			
+				if($barcodeProduct === 'yes'):
+
+					if(!$status):
+						$status = true;
+					endif;
+
+					// $barcodeAmount = get_post_meta( $product_id, '_barcode_amount', true );
+					// $barcodePrefix = get_post_meta( $product_id, '_barcode_prefix', true );
+
+					// echo 'barcode product '.$product_id .' found '.$quantity.' times<br>';
+					// echo 'This product requests: '.$barcodeAmount.' with the prefix: '.$barcodePrefix;
+					
+					// echo '<hr>';
+
+					// for($i =0;$i < $quantity; $i++):
+					// 	if(!array_key_exists($barcodePrefix, $barcodes)):
+					// 		$barcodes[$barcodePrefix] = 0;
+					// 	endif;
+
+					// 	$barcodes[$barcodePrefix] += $barcodeAmount;
+					// endfor;
+
+					
+				endif;
+				
+				
+			endif;
+
+			
+			
 
 			// Get the product object
-			$product = wc_get_product( $product_id );
+			// $product = wc_get_product( $product_id );
 
-		}
+		endforeach;
 
-		// Ouptput some data
-		echo '<p>Order ID: '. $order_id . ' — Order Status: ' . $order->get_status() . ' — Order is paid: ' . $paid . '</p>';
+		if($status):
+			global $wpdb;
+			$table = $wpdb->prefix.'barcodes';
 
-		exit();
+			$check = $wpdb->get_results("SELECT * FROM $table WHERE order_id = ".(int)$order_id);
+			if(count($check) == 0):
+				$fields = array('order_id' => $order_id);
+				$wpdb->insert($table,$fields);
+			endif;
+
+		endif;
+
+		// echo $status;
+
+		// if(!empty($barcodes)):
+		// 	echo '<pre>';
+		// 	print_r($barcodes);
+		// 	echo '</pre>';
+		// endif;
+
+		// exit();
 	}
 }

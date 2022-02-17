@@ -20,17 +20,16 @@
  * @subpackage Barcode_Generator/includes
  * @author     Peter Bode <peterbode1989@gmail.com>
  */
-class Barcode_Generator_Deactivator {
-
+class Barcode_Generator_Deactivator
+{
 	/**
-	 * Short Description. (use period)
-	 *
-	 * Long Description.
+	 * Remove stuff what no longer is needed.
 	 *
 	 * @since    1.0.0
 	 */
-	public static function deactivate() {
-
+	public static function deactivate()
+	{
+		// Remove the scheduled event
+		wp_clear_scheduled_hook('nugtrBarcodes');
 	}
-
 }
