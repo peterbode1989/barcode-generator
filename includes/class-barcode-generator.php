@@ -188,7 +188,7 @@ class Barcode_Generator
 		$this->loader->add_action('task_barcodes', $plugin_cronjob, 'sendBarcodes');
 
 
-		// $this->loader->add_action('init', $plugin_cronjob, 'createAttachment');
+		// $this->loader->add_action('init', $plugin_cronjob, 'sendBarcodes');
 	}
 
 	/**

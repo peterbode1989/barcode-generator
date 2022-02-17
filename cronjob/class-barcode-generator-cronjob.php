@@ -71,9 +71,16 @@ class Barcode_Generator_Cronjob
 			foreach($results as $result):
 				$order = wc_get_order( $result->order_id );
 
+				// echo '<pre>';
+				// var_dump($order->is_paid());
+				// echo '</pre>';
+				// exit();
+
 				if(!$order->is_paid()):
 					continue;
 				endif;
+
+
 
 				$barcodes = [];
 				foreach ( $order->get_items() as $item_id => $item ) :

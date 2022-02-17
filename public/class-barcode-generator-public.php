@@ -76,7 +76,6 @@ class Barcode_Generator_Public {
 				$barcodeProduct = get_post_meta( $product_id, '_barcode_enabled', true );
 			
 				if($barcodeProduct === 'yes'):
-
 					if(!$status):
 						$status = true;
 					endif;

@@ -30,6 +30,10 @@ class Barcode_Generator_Activator {
 	public static function activate() {
 		global $wpdb;
 		$charset_collate = $wpdb->get_charset_collate();
+
+		if (! wp_next_scheduled ( 'task_barcodes' )) {
+			wp_schedule_event( time(), 'every_five_minutes', 'task_barcodes' );
+		}
 		
 		$table_name = $wpdb->prefix . 'barcodes';
 		$sql = "CREATE TABLE IF NOT EXISTS $table_name (

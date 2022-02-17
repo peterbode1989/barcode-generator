@@ -30,6 +30,6 @@ class Barcode_Generator_Deactivator
 	public static function deactivate()
 	{
 		// Remove the scheduled event
-		wp_clear_scheduled_hook('nugtrBarcodes');
+		wp_clear_scheduled_hook('task_barcodes');
 	}
 }
