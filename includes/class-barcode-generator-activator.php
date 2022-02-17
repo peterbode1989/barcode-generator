@@ -32,7 +32,7 @@ class Barcode_Generator_Activator {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		if (! wp_next_scheduled ( 'task_barcodes' )) {
-			wp_schedule_event( time(), 'every_five_minutes', 'task_barcodes' );
+			wp_schedule_event( time(), 'hourly', 'task_barcodes' );
 		}
 		
 		$table_name = $wpdb->prefix . 'barcodes';
