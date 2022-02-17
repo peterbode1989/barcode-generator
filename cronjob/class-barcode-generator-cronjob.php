@@ -135,7 +135,8 @@ class Barcode_Generator_Cronjob
 
 					if(wp_mail($order->get_billing_email(), get_option(self::$plugin_name.'_title'), $message, $headers, $attachments)):
 						$wpdb->update($table, ['resolved' => 1], ['order_id' => $result->order_id]);
-
+						
+						$order->update_status( 'completed' );
 						unlink(WP_CONTENT_DIR . '/uploads/'. $file);
 					endif;
 				endif;
