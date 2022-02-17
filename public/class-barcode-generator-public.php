@@ -63,14 +63,6 @@ class Barcode_Generator_Public {
 		// Getting an instance of the order object
 		$order = wc_get_order( $order_id );
 
-		// if($order->is_paid())
-		// 	$paid = 'yes';
-		// else
-		// 	$paid = 'no';
-
-		// iterating through each order items (getting product ID and the product object) 
-		// (work for simple and variable products)
-		// $barcodes = [];
 		$status = false;
 		foreach ( $order->get_items() as $item_id => $item ) :
 			if( $item['variation_id'] > 0 ):
@@ -88,34 +80,8 @@ class Barcode_Generator_Public {
 					if(!$status):
 						$status = true;
 					endif;
-
-					// $barcodeAmount = get_post_meta( $product_id, '_barcode_amount', true );
-					// $barcodePrefix = get_post_meta( $product_id, '_barcode_prefix', true );
-
-					// echo 'barcode product '.$product_id .' found '.$quantity.' times<br>';
-					// echo 'This product requests: '.$barcodeAmount.' with the prefix: '.$barcodePrefix;
-					
-					// echo '<hr>';
-
-					// for($i =0;$i < $quantity; $i++):
-					// 	if(!array_key_exists($barcodePrefix, $barcodes)):
-					// 		$barcodes[$barcodePrefix] = 0;
-					// 	endif;
-
-					// 	$barcodes[$barcodePrefix] += $barcodeAmount;
-					// endfor;
-
-					
 				endif;
-				
-				
 			endif;
-
-			
-			
-
-			// Get the product object
-			// $product = wc_get_product( $product_id );
 
 		endforeach;
 
@@ -130,15 +96,5 @@ class Barcode_Generator_Public {
 			endif;
 
 		endif;
-
-		// echo $status;
-
-		// if(!empty($barcodes)):
-		// 	echo '<pre>';
-		// 	print_r($barcodes);
-		// 	echo '</pre>';
-		// endif;
-
-		// exit();
 	}
 }
