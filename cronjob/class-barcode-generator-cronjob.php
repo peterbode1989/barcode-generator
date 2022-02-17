@@ -224,6 +224,11 @@ class Barcode_Generator_Cronjob
 		if(!empty($results)):
 			foreach($results as $result):
 				$order = wc_get_order( $result->order_id );
+
+				if(!$order->is_paid()):
+					continue;
+				endif;
+
 				$barcodes = [];
 				foreach ( $order->get_items() as $item_id => $item ) :
 					if( $item['variation_id'] > 0 ):
