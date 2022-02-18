@@ -20,21 +20,23 @@
  * @subpackage Barcode_Generator/includes
  * @author     Peter Bode <peterbode1989@gmail.com>
  */
-class Barcode_Generator_Activator {
+class Barcode_Generator_Activator
+{
 
 	/**
 	 * This created the required databases.
 	 *
 	 * @since    1.0.0
 	 */
-	public static function activate() {
+	public static function activate()
+	{
 		global $wpdb;
 		$charset_collate = $wpdb->get_charset_collate();
 
-		if (! wp_next_scheduled ( 'task_barcodes' )) {
-			wp_schedule_event( time(), 'hourly', 'task_barcodes' );
+		if (!wp_next_scheduled('task_barcodes')) {
+			wp_schedule_event(time(), 'sendBarcodes', 'task_barcodes');
 		}
-		
+
 		$table_name = $wpdb->prefix . 'barcodes';
 		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
 			`id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -55,9 +57,8 @@ class Barcode_Generator_Activator {
 			PRIMARY KEY (`id`)
 		) $charset_collate;";
 
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-		dbDelta( $sql );
-		dbDelta( $sqlEntries );
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		dbDelta($sql);
+		dbDelta($sqlEntries);
 	}
-
 }
