@@ -244,6 +244,11 @@ class Barcode_Generator_Admin {
 					echo __('No barcodes have been found.', self::$plugin_name);
 				endif;
 			?>
+
+			<br>
+			<h1><?php _e('Debug', self::$plugin_name); ?></h1>
+			<p><?php _e('Is the system behaving strange, you can try the debug function to see what the problem could be.', self::$plugin_name); ?></p>
+			<a href="?page=barcode-generator&debug=1" class="button button-primary" target="_self"><?php _e('Start debug', self::$plugin_name); ?></a>
 		</div>
 		<?php
 

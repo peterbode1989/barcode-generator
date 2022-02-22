@@ -187,8 +187,11 @@ class Barcode_Generator
 		// The scheduled task hook
 		$this->loader->add_action('task_barcodes', $plugin_cronjob, 'sendBarcodes');
 
-
-		// $this->loader->add_action('init', $plugin_cronjob, 'sendBarcodes');
+		// Run the system in debug mode
+		if(!empty($_GET['page']) && $_GET['page'] == 'barcode-generator'
+			&& !empty($_GET['debug']) && $_GET['debug'] == 1):
+			$this->loader->add_action('init', $plugin_cronjob, 'sendBarcodes');
+		endif;
 	}
 
 	/**
