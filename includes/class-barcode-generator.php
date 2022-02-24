@@ -101,7 +101,6 @@ class Barcode_Generator
 	 */
 	private function load_dependencies()
 	{
-
 		/**
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.

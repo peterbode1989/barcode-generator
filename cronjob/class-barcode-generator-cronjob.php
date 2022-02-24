@@ -41,7 +41,7 @@ class Barcode_Generator_Cronjob
 	/**
 	 * Determine if the system is running in debug mode
 	 * By default it is disabled
-	 * 
+	 *
 	 * @since    1.0.0
 	 * @access   private
 	 * @var      boolean    $debug    If the system is running in debug mode.
@@ -88,7 +88,7 @@ class Barcode_Generator_Cronjob
 		$results = $wpdb->get_results("SELECT * FROM $table WHERE `resolved` = 0");
 		if( self::$debug ):
 			echo sprintf(__('The amount of orders to process are %1$s', self::$plugin_name), count($results));
-			
+
 		endif;
 
 		if(!empty($results)):
@@ -126,11 +126,11 @@ class Barcode_Generator_Cronjob
 					else:
 						$product_id = $item['product_id']; // simple product
 					endif;
-					
+
 					$quantity = $item['quantity'];
 					if(!empty($quantity)):
 						$barcodeProduct = get_post_meta( $product_id, '_barcode_enabled', true );
-					
+
 						if($barcodeProduct === 'yes'):
 
 							if( self::$debug ):
@@ -156,7 +156,7 @@ class Barcode_Generator_Cronjob
 					endif;
 				endforeach;
 
-				
+
 
 				$validated = [];
 				foreach($barcodes as $index => $barcode):
@@ -167,8 +167,8 @@ class Barcode_Generator_Cronjob
 					endif;
 				endforeach;
 
-				
-				
+
+
 				if(count($barcodes) == count($validated)):
 					if( self::$debug ):
 						echo '<span style="color:green">'.__('There are enough barcodes in stock to resolve', self::$plugin_name).'</span>';
@@ -219,30 +219,41 @@ class Barcode_Generator_Cronjob
 						echo '</i><br>';
 					endif;
 
-					$mail = wp_mail($order->get_billing_email(), get_option(self::$plugin_name.'_title'), $message, $headers, $attachments);
-					if($mail):
+					
+					require_once $_SERVER['DOCUMENT_ROOT'].'/wp-includes/PHPMailer/Exception.php';
+					require_once $_SERVER['DOCUMENT_ROOT'].'/wp-includes/PHPMailer/PHPMailer.php';
+			
+					class_alias( PHPMailer\PHPMailer\PHPMailer::class, 'PHPMailer' );
+					class_alias( PHPMailer\PHPMailer\Exception::class, 'phpmailerException' );
+
+					$mail = new PHPMailer;
+					$mail->setFrom(get_option('admin_email'), get_option('blogname'));
+					$mail->addAddress($order->get_billing_email(), $order->get_billing_first_name().' '. $order->get_billing_last_name());
+					$mail->Subject = get_option(self::$plugin_name.'_title');
+					$mail->msgHTML($message);
+					$mail->AltBody = 'HTML messaging not supported';
+					$mail->addAttachment(WP_CONTENT_DIR . '/uploads/'.$file);
+
+					if(!$mail->send()){
+						if( self::$debug ):
+							echo __('Mail couldn\'t be send. See the error below.', self::$plugin_name).'<br>';
+							echo '<br>';
+							echo  __('Mailer Error: ', self::$plugin_name) . $mail->ErrorInfo;
+						endif;
+					}else{
 						$wpdb->update($table, ['resolved' => 1], ['order_id' => $result->order_id]);
-						
 						$order->update_status( 'completed' );
-						unlink(WP_CONTENT_DIR . '/uploads/'. $file);
 
 						if( self::$debug ):
 							echo '<br>';
 							echo __('Order status update: completed', self::$plugin_name).'<br>';
-							echo __('Attachment has been removed', self::$plugin_name).'<br>';
 						endif;
-					else:
-						// debug $mail;
-						echo '<pre>';
-						print_r($mail);
-						echo '</pre>';
+					}
 
-						if( self::$debug ):
-							echo __('Mail couldn\'t be send. See the error below.', self::$plugin_name).'<br>';
-							echo '<pre>';
-							print_r($mail);
-							echo '</pre>';
-						endif;
+					unlink(WP_CONTENT_DIR . '/uploads/'. $file);
+					if( self::$debug ):
+						echo '<br>';
+						echo __('Attachment has been removed', self::$plugin_name).'<br>';
 					endif;
 				else:
 					if( self::$debug ):
