@@ -219,26 +219,10 @@ class Barcode_Generator_Cronjob
 						echo '</i><br>';
 					endif;
 
-					
-					require_once $_SERVER['DOCUMENT_ROOT'].'/wp-includes/PHPMailer/Exception.php';
-					require_once $_SERVER['DOCUMENT_ROOT'].'/wp-includes/PHPMailer/PHPMailer.php';
-			
-					class_alias( PHPMailer\PHPMailer\PHPMailer::class, 'PHPMailer' );
-					class_alias( PHPMailer\PHPMailer\Exception::class, 'phpmailerException' );
-
-					$mail = new PHPMailer;
-					$mail->setFrom(get_option('admin_email'), get_option('blogname'));
-					$mail->addAddress($order->get_billing_email(), $order->get_billing_first_name().' '. $order->get_billing_last_name());
-					$mail->Subject = get_option(self::$plugin_name.'_title');
-					$mail->msgHTML($message);
-					$mail->AltBody = 'HTML messaging not supported';
-					$mail->addAttachment(WP_CONTENT_DIR . '/uploads/'.$file);
-
-					if(!$mail->send()){
+					$mail = wp_mail($order->get_billing_email(), get_option(self::$plugin_name.'_title'), $message, $headers, $attachments);
+					if(!$mail){
 						if( self::$debug ):
-							echo __('Mail couldn\'t be send. See the error below.', self::$plugin_name).'<br>';
-							echo '<br>';
-							echo  __('Mailer Error: ', self::$plugin_name) . $mail->ErrorInfo;
+							echo __('Mail couldn\'t be send.', self::$plugin_name).'<br>';
 						endif;
 					}else{
 						$wpdb->update($table, ['resolved' => 1], ['order_id' => $result->order_id]);
